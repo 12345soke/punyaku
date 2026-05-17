@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<!-- Playables SDK -->
+<script>// Playables SDK v1.0.0
+// Game lifecycle bridge: rAF-based game-ready detection + event communication
+(function() {
+  'use strict';
+
+  // Idempotency: skip if already initialized (e.g., server-side injection
+  // followed by client-side inject-javascript via the Bloks webview component).
+  if (window.playablesSDK) return;
+
+  var HANDLER_NAME = 'playablesGameEventHandler';
+  var ANDROID_BRIDGE_NAME = '_MetaPlayablesBridge';
+  var RAF_FRAME_THRESHOLD = 3;
+
+  var gameReadySent = false;
+  var firstInteractionSent = false;
+  var errorSent = false;
+  var frameCount = 0;
+  var originalRAF = window.requestAnimationFrame;
+
+  // --- Transport Layer ---
+
+  function hasIOSBridge() {
+    return !!(window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers[HANDLER_NAME]);
+  }
+
+  function hasAndroidBridge() {
+    return !!(window[ANDROID_BRIDGE_NAME] &&
+              typeof window[ANDROID_BRIDGE_NAME].postEvent === 'function');
+  }
+
+  function isInIframe() {
+    return !!(window.parent && window.parent !== window);
+  }
+
+  function sendEvent(eventName, payload) {
+    var message = {
+      type: eventName,
+      payload: payload || {},
+      timestamp: Date.now()
+    };
+
+    if (hasIOSBridge()) {
+      try {
+        window.webkit.messageHandlers[HANDLER_NAME].postMessage(message);
+      } catch (e) { /* ignore */ }
+      return;
+    }
+
+    if (hasAndroidBridge()) {
+    try {
+      var p = payload || {};
+      p.__secureToken = window.__fbAndroidBridgeAuthToken || '';
+      p.timestamp = message.timestamp;
+      window[ANDROID_BRIDGE_NAME].postEvent(
+        eventName,
+        JSON.stringify(p)
+      );
+    } catch (e) { /* ignore */ }
+    return;
+  }
+
+    if (isInIframe()) {
+      try {
+        window.parent.postMessage(message, '*');
+      } catch (e) { /* ignore */ }
+      return;
+    }
+  }
+
+  // --- rAF Game-Ready Detection ---
+
+  function onFrame() {
+    if (gameReadySent) return;
+
+    frameCount++;
+    if (frameCount >= RAF_FRAME_THRESHOLD) {
+      gameReadySent = true;
+      sendEvent('game_ready', {
+        frame_count: frameCount,
+        detected_at: Date.now()
+      });
+      return;
+    }
+
+    originalRAF.call(window, onFrame);
+  }
+
+  if (originalRAF) {
+    window.requestAnimationFrame = function(callback) {
+      if (!gameReadySent) {
+        return originalRAF.call(window, function(timestamp) {
+          frameCount++;
+          if (frameCount >= RAF_FRAME_THRESHOLD && !gameReadySent) {
+            gameReadySent = true;
+            sendEvent('game_ready', {
+              frame_count: frameCount,
+              detected_at: Date.now()
+            });
+          }
+          callback(timestamp);
+        });
+      }
+      return originalRAF.call(window, callback);
+    };
+  }
+
+  // --- First User Interaction Detection ---
+
+  function setupFirstInteractionDetection() {
+    var events = ['touchstart', 'mousedown', 'keydown'];
+
+    function onFirstInteraction() {
+      if (firstInteractionSent) return;
+      firstInteractionSent = true;
+      sendEvent('user_interaction_start', null);
+
+      for (var i = 0; i < events.length; i++) {
+        document.removeEventListener(events[i], onFirstInteraction, true);
+      }
+    }
+
+    for (var i = 0; i < events.length; i++) {
+      document.addEventListener(events[i], onFirstInteraction, true);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupFirstInteractionDetection);
+  } else {
+    setupFirstInteractionDetection();
+  }
+
+  // --- Auto Error Capture ---
+
+  window.addEventListener('error', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    sendEvent('error', {
+      message: event.message || 'Unknown error',
+      source: event.filename || '',
+      lineno: event.lineno || 0,
+      colno: event.colno || 0,
+      auto_captured: true
+    });
+  });
+
+  window.addEventListener('unhandledrejection', function(event) {
+    if (errorSent) return;
+    errorSent = true;
+    var reason = event.reason;
+    sendEvent('error', {
+      message: (reason instanceof Error) ? reason.message : String(reason),
+      type: 'unhandled_promise_rejection',
+      auto_captured: true
+    });
+  });
+
+  // --- Public API ---
+
+  window.playablesSDK = {
+    complete: function(score) {
+      sendEvent('game_ended', {
+        score: score,
+        completed: true
+      });
+    },
+
+    error: function(message) {
+      if (errorSent) return;
+      errorSent = true;
+      sendEvent('error', {
+        message: message || 'Unknown error',
+        auto_captured: false
+      });
+    },
+
+    sendEvent: function(eventName, payload) {
+      if (!eventName || typeof eventName !== 'string') return;
+      sendEvent(eventName, payload);
+    }
+  };
+
+  // Kick off rAF detection in case no game code calls rAF immediately
+  if (originalRAF) {
+    originalRAF.call(window, onFrame);
+  }
+})();</script>
+<script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MODUL AJAR PAI - Senangnya Shalat Rawatib | Kelas 3 SD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+    --tosca:#14b8a6;
+    --tosca-dark:#0d9488;
+    --biru:#0ea5e9;
+    --biru-muda:#e0f2fe;
+    --biru-soft:#7dd3fc;
+    --kuning:#fef9c3;
+    --kuning-dark:#facc15;
+    --hijau-soft:#d1fae5;
+    --abu:#f8fafc;
+    --teks:#0f172a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+    font-family:'Poppins',sans-serif;
+    background: linear-gradient(180deg,#f0fdfa 0%,#ecfeff 100%);
+    color:var(--teks);
+    line-height:1.6;
+}
+.container{max-width:1000px;margin:0 auto;padding:20px}
+.header{
+    background:linear-gradient(135deg,var(--tosca-dark) 0%,#0891b2 50%,var(--biru) 100%);
+    color:white;
+    padding:28px;
+    border-radius:24px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    box-shadow:0 10px 30px rgba(13,148,136,.25);
+    margin-bottom:24px;
+    position:relative;
+    overflow:hidden;
+}
+.header::after{
+    content:"";
+    position:absolute;
+    right:-40px;top:-40px;width:180px;height:180px;
+    background:radial-gradient(circle,rgba(255,255,255,.2),transparent 60%);
+    border-radius:50%;
+}
+.logo{
+    width:80px;height:80px;background:white;border-radius:18px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,.1);
+}
+.logo svg{width:55px;height:55px}
+.header h1{font-size:28px;font-weight:700;letter-spacing:.5px}
+.header h2{font-size:18px;font-weight:500;opacity:.95}
+.header p{font-size:14px;opacity:.85;margin-top:4px}
+.actions{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.btn{
+    background:white;border:2px solid var(--tosca);color:var(--tosca-dark);
+    padding:10px 18px;border-radius:12px;font-weight:600;cursor:pointer;
+    transition:.2s;font-family:'Poppins';font-size:14px;
+    box-shadow:0 2px 8px rgba(20,184,166,.15);
+}
+.btn:hover{background:var(--tosca);color:white;transform:translateY(-1px)}
+.btn.primary{background:var(--tosca);color:white}
+.card{
+    background:white;border-radius:20px;padding:24px;margin-bottom:22px;
+    box-shadow:0 8px 24px rgba(2,132,199,.08);
+    border-left:6px solid var(--tosca);
+    page-break-inside:avoid;
+}
+.card.blue{border-left-color:var(--biru);background:linear-gradient(0deg,white,#f0f9ff 100%)}
+.card.yellow{border-left-color:var(--kuning-dark);background:linear-gradient(0deg,white,#fffbeb 100%)}
+.card.green{border-left-color:#10b981;background:linear-gradient(0deg,white,#ecfdf5 100%)}
+.section-title{
+    display:flex;align-items:center;gap:10px;
+    font-size:20px;font-weight:700;color:var(--tosca-dark);
+    margin-bottom:16px;padding-bottom:8px;border-bottom:3px solid #ccfbf1;
+}
+.section-title span{font-size:24px}
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse;font-size:14px;background:white}
+th{background:linear-gradient(90deg,var(--tosca),var(--tosca-dark));color:white;padding:12px 14px;text-align:left;font-weight:600}
+td{padding:11px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:#f8fafc}
+.table-identitas th{width:220px;background:#f0fdfa;color:var(--tosca-dark);border-right:3px solid #ccfbf1}
+.table-identitas td{background:white;font-weight:500}
+.badge{
+    display:inline-block;padding:6px 12px;border-radius:999px;
+    font-size:12px;font-weight:600;margin:4px 4px 0;
+}
+.badge.pancasila{background:#dbeafe;color:#1e40af;border:1px solid #93c5fd}
+.badge.rahmatan{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.badge.cinta{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.list-check{list-style:none;padding-left:0}
+.list-check li{padding:6px 0 6px 28px;position:relative}
+.list-check li::before{content:"✓";position:absolute;left:0;top:6px;width:20px;height:20px;background:var(--hijau-soft);color:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.info-box{padding:14px;border-radius:12px;margin:10px 0;font-size:14px}
+.info-blue{background:var(--biru-muda);border-left:4px solid var(--biru)}
+.info-green{background:var(--hijau-soft);border-left:4px solid #10b981}
+.info-yellow{background:var(--kuning);border-left:4px solid var(--kuning-dark)}
+.kegiatan td:first-child{font-weight:600;width:120px}
+tr.pendahuluan td:first-child{background:var(--biru-muda);color:#075985}
+tr.inti td:first-child{background:var(--hijau-soft);color:#065f46}
+tr.penutup td:first-child{background:var(--kuning);color:#854d0e}
+.dalil{
+    background:linear-gradient(135deg,#f0fdfa,#ecfeff);
+    border:2px dashed var(--tosca);
+    padding:18px;border-radius:14px;
+    text-align:center;margin:14px 0;
+}
+.arab{font-size:22px;font-family:'Traditional Arabic',serif;direction:rtl;color:#0f766e;margin:8px 0;font-weight:600}
+.latin{font-style:italic;color:#475569;font-size:13px}
+.soal{margin:16px 0;padding:14px;background:#f8fafc;border-radius:10px;border-left:4px solid var(--biru)}
+.soal ol{padding-left:20px}
+.soal li{margin-bottom:10px}
+.kunci{display:none;margin-top:20px;padding:18px;background:#fffbeb;border:2px solid var(--kuning-dark);border-radius:12px}
+.footer{text-align:center;margin-top:30px;padding:20px;color:#64748b;font-size:13px;border-top:2px solid #e2e8f0}
+.tujuan-box{display:grid;gap:12px}
+.tujuan-item{display:flex;gap:12px;align-items:start;padding:12px;background:#f0fdfa;border-radius:12px;border:1px solid #99f6e4}
+.tujuan-num{background:var(--tosca);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:14px}
+@media(max-width:768px){
+    .grid-2,.grid-3{grid-template-columns:1fr}
+    .header{flex-direction:column;text-align:center}
+    .header h1{font-size:22px}
+    .container{padding:14px}
+    .card{padding:18px}
+}
+@media print{
+    @page{size:A4;margin:12mm}
+    body{background:white}
+    .no-print{display:none!important}
+    .container{padding:0;max-width:100%}
+    .card{box-shadow:none;border:1px solid #e2e8f0;page-break-inside:avoid;margin-bottom:14px}
+    .header{box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="actions no-print">
+        <button class="btn primary" onclick="window.print()">🖨️ Cetak Modul A4</button>
+        <button class="btn" onclick="toggleKunci()">🔑 Lihat Kunci Jawaban</button>
+    </div>
+
+    <header class="header">
+        <div class="logo">
+            <svg viewBox="0 0 100 100" fill="none">
+                <rect width="100" height="100" rx="18" fill="#0d9488"/>
+                <path d="M50 20 L70 40 L60 40 L60 70 L40 70 L40 40 L30 40 Z" fill="white"/>
+                <circle cx="50" cy="28" r="6" fill="#fde68a"/>
+            </svg>
+        </div>
+        <div>
+            <h1>MODUL AJAR KURIKULUM MERDEKA</h1>
+            <h2>Pendidikan Agama Islam dan Budi Pekerti</h2>
+            <p>SDS Lagoa YPUL | Fase B - Kelas 3 | Semester Genap 2025/2026</p>
+        </div>
+    </header>
+
+    <!-- 1. IDENTITAS -->
+    <div class="card">
+        <div class="section-title"><span>📋</span> 1. Identitas Modul</div>
+        <div class="table-wrap">
+        <table class="table-identitas">
+            <tr><th>Nama Guru</th><td>Jajuli, S.Pd.</td></tr>
+            <tr><th>Sekolah</th><td>SDS Lagoa YPUL</td></tr>
+            <tr><th>Kepala Sekolah</th><td>Hariyanto, S.Pd.I</td></tr>
+            <tr><th>Fase / Kelas</th><td>B / 3 (Tiga)</td></tr>
+            <tr><th>Semester / TP</th><td>Genap / 2025-2026</td></tr>
+            <tr><th>Mata Pelajaran</th><td>Pendidikan Agama Islam dan Budi Pekerti</td></tr>
+            <tr><th>Bab / Tema</th><td>4. "Senangnya Shalat Rawatib"</td></tr>
+            <tr><th>Alokasi Waktu</th><td>2 x 35 menit (1 Pertemuan)</td></tr>
+            <tr><th>Submateri</th><td>Pengertian shalat rawatib, macam-macam shalat rawatib, hikmah shalat rawatib</td></tr>
+        </table>
+        </div>
+    </div>
+
+    <!-- 2. CP -->
+    <div class="card blue">
+        <div class="section-title"><span>🎯</span> 2. Capaian Pembelajaran (CP) Fase B</div>
+        <table>
+            <tr><th style="width:140px">Elemen</th><th>Capaian</th></tr>
+            <tr><td><b>Al-Qur'an Hadis</b></td><td>Mengenal surah dan ayat tentang salat serta hadis tentang menjaga hubungan antar sesama.</td></tr>
+            <tr><td><b>Fikih</b></td><td>Mengetahui salat sunah (termasuk shalat rawatib).</td></tr>
+            <tr><td><b>Akidah</b></td><td>Mengenal sifat Allah Yang Maha Pengasih dan Penyayang.</td></tr>
+            <tr><td><b>Akhlak</b></td><td>Berbuat baik kepada orang tua dan guru sebagai wujud cinta kepada Allah.</td></tr>
+        </table>
+    </div>
+
+    <!-- 3. TUJUAN -->
+    <div class="card green">
+        <div class="section-title"><span>🌟</span> 3. Tujuan Pembelajaran</div>
+        <div class="tujuan-box">
+            <div class="tujuan-item"><div class="tujuan-num">1</div><div>Peserta didik <b>mampu menjelaskan pengertian shalat rawatib</b> dengan bahasa sendiri.</div></div>
+            <div class="tujuan-item"><div class="tujuan-num">2</div><div>Peserta didik <b>mampu menyebutkan macam-macam shalat rawatib</b> muakkad dan ghairu muakkad.</div></div>
+            <div class="tujuan-item"><div class="tujuan-num">3</div><div>Peserta didik <b>mampu menunjukkan hikmah shalat rawatib</b> dalam kehidupan sehari-hari.</div></div>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card">
+            <div class="section-title"><span>🧠</span> 4. Kompetensi Awal</div>
+            <ul class="list-check">
+                <li>Sudah hafal gerakan shalat fardhu</li>
+                <li>Sudah bisa berwudhu dengan benar</li>
+                <li>Mengenal waktu shalat lima waktu</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="section-title"><span>👥</span> 7. Target Peserta Didik</div>
+            <p><b>25 siswa reguler</b> dengan diferensiasi:</p>
+            <p>👁️ <b>Visual:</b> poster & video | 👂 <b>Auditori:</b> diskusi & cerita | ✋ <b>Kinestetik:</b> praktik & role play</p>
+        </div>
+    </div>
+
+    <!-- 5. PROFIL -->
+    <div class="card yellow">
+        <div class="section-title"><span>🇮🇩</span> 5. Profil Pelajar Pancasila & Rahmatan lil 'Alamin</div>
+        <p><b>Profil Pelajar Pancasila:</b></p>
+        <span class="badge pancasila">Beriman, Bertakwa kepada Tuhan YME</span>
+        <span class="badge pancasila">Bernalar Kritis</span>
+        <span class="badge pancasila">Bergotong-royong</span>
+        <p style="margin-top:10px"><b>Profil Rahmatan lil 'Alamin:</b></p>
+        <span class="badge rahmatan">Hubbullah (Cinta Allah)</span>
+        <span class="badge rahmatan">Hubbunnaas (Cinta Sesama)</span>
+        <span class="badge rahmatan">Tawazun (Seimbang)</span>
+    </div>
+
+    <div class="grid-3">
+        <div class="card">
+            <div class="section-title"><span>🧰</span> 6. Sarana Prasarana</div>
+            <ul class="list-check">
+                <li>Mushola kelas</li>
+                <li>Sajadah mini</li>
+                <li>Video animasi</li>
+                <li>Kartu "Rawatib Pintar"</li>
+                <li>Poster jadwal rawatib</li>
+                <li>LKPD</li>
+            </ul>
+        </div>
+        <div class="card">
+            <div class="section-title"><span>💡</span> 8-9. Model & Metode</div>
+            <p><b>Model:</b> HOTS berbasis Deep Learning</p>
+            <p><b>Metode:</b> Diskusi, Demonstrasi, Tanya Jawab, Role Play, Game Edukatif</p>
+        </div>
+        <div class="card">
+            <div class="section-title"><span>❤️</span> 10. Pendekatan</div>
+            <p><b>CINTA (Kurikulum Berbasis Cinta)</b></p>
+            <span class="badge cinta">Cinta Allah & Rasul</span>
+            <span class="badge cinta">Cinta Ilmu</span>
+            <span class="badge cinta">Cinta Diri & Sesama</span>
+            <span class="badge cinta">Cinta Lingkungan</span>
+            <span class="badge cinta">Cinta Tanah Air</span>
+            <p style="margin-top:8px">+ Pendekatan Saintifik</p>
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card blue">
+            <div class="section-title"><span>📺</span> 11. Media Pembelajaran</div>
+            <p>Video YouTube "Shalat Rawatib Anak", PowerPoint warna-warni, Kartu bergambar waktu shalat.</p>
+            <div class="info-blue"><b>12. Pemahaman Bermakna:</b> Shalat rawatib adalah hadiah cinta dari Allah untuk menambah pahala, melengkapi shalat wajib, dan melatih disiplin.</div>
+        </div>
+        <div class="card">
+            <div class="section-title"><span>❓</span> 13. Pertanyaan Pemantik</div>
+            <ul class="list-check">
+                <li>Pernahkah kamu shalat sebelum atau sesudah shalat wajib?</li>
+                <li>Apa rasanya hati jadi tenang?</li>
+                <li>Kenapa Rasulullah rajin sekali shalat sunah?</li>
+            </ul>
+            <div class="info-yellow" style="margin-top:10px"><b>14. Persiapan:</b> Guru siapkan video, kartu, cek kebersihan mushola, doa pembuka.</div>
+        </div>
+    </div>
+
+    <!-- 15 KEGIATAN -->
+    <div class="card">
+        <div class="section-title"><span>📚</span> 15. Kegiatan Pembelajaran</div>
+        <div class="table-wrap">
+        <table class="kegiatan">
+            <tr><th>Kegiatan</th><th>Deskripsi (HOTS & CINTA)</th><th style="width:80px">Waktu</th></tr>
+            <tr class="pendahuluan">
+                <td><b>PENDAHULUAN</b></td>
+                <td>1. Salam & doa pembuka "Robbi zidni ilman..."<br>2. Ice Breaking "Tepuk Wudhu"<br>3. Apersepsi: tanya pengalaman shalat sunah<br>4. Sampaikan tujuan: "Hari ini kita belajar hadiah cinta dari Allah"</td>
+                <td>10 menit</td>
+            </tr>
+            <tr class="inti">
+                <td rowspan="5"><b>INTI</b></td>
+                <td><b>Ciptakan Suasana (Cinta Allah):</b> Tonton video "Shalat Rawatib Anak", tanya jawab. <b>HOTS: Menganalisis</b> - "Apa bedanya dengan shalat wajib?"</td>
+                <td rowspan="5">50 menit</td>
+            </tr>
+            <tr class="inti"><td><b>Investigasi:</b> Diskusi kelompok dengan Kartu "Rawatib Pintar". Kelompok 1 bahas Muakkad, Kelompok 2 Ghairu Muakkad.</td></tr>
+            <tr class="inti"><td><b>Nalar (Bernalar Kritis):</b> Game "Pasangkan Waktu" - tempel kartu Qobliyah/Ba'diyah di poster jadwal shalat.</td></tr>
+            <tr class="inti"><td><b>Tindakan (Cinta Ilmu):</b> Praktik simulasi 2 rakaat Qobliyah Subuh di mushola. Role play imam-makmum.</td></tr>
+            <tr class="inti"><td><b>Apresiasi:</b> Presentasi kelompok - "Hikmah apa yang kalian dapat?"</td></tr>
+            <tr class="penutup">
+                <td><b>PENUTUP</b></td>
+                <td>1. Refleksi: "Satu hal yang paling kamu suka hari ini?"<br>2. Simpulkan bersama: Rawatib = pelengkap cinta<br>3. Doa penutup<br>4. Tugas rumah: praktik 1 rawatib dengan orang tua</td>
+                <td>10 menit</td>
+            </tr>
+        </table>
+        </div>
+    </div>
+
+    <!-- 16 ASESMEN -->
+    <div class="card">
+        <div class="section-title"><span>📊</span> 16. Asesmen</div>
+        <div class="grid-3">
+            <div class="info-blue"><b>Diagnostik (Awal)</b><br>Tanya 3 pertanyaan lisan: "Apa itu sunah? Kapan waktunya?"</div>
+            <div class="info-green"><b>Formatif (Proses)</b><br>Observasi sikap saat praktik, cek LKPD "Ayo Menulis"</div>
+            <div class="info-yellow"><b>Sumatif (Akhir)</b><br>Tes tulis HOTS 10 PG, 5 isian, 5 uraian</div>
+        </div>
+    </div>
+
+    <!-- 17 RUBRIK -->
+    <div class="card">
+        <div class="section-title"><span>📝</span> 17. Rubrik Penilaian</div>
+        <div class="table-wrap">
+        <table>
+            <tr><th>Aspek</th><th>Sangat Baik (4)</th><th>Baik (3)</th><th>Cukup (2)</th><th>Perlu Bimbingan (1)</th></tr>
+            <tr><td><b>Sikap</b><br>(Beriman & Disiplin)</td><td>Khusyuk, tepat waktu, tertib tanpa disuruh</td><td>Khusyuk, kadang diingatkan</td><td>Kurang tertib, perlu diingatkan</td><td>Belum menunjukkan adab shalat</td></tr>
+            <tr><td><b>Pengetahuan</b></td><td>Jelaskan pengertian & sebutkan ≥8 rawatib dengan benar</td><td>Jelaskan & sebutkan 5-7 rawatib</td><td>Jelaskan singkat & sebut 3-4 rawatib</td><td>Belum mampu menjelaskan</td></tr>
+            <tr><td><b>Keterampilan</b></td><td>Praktik 2 rakaat lancar, bacaan benar, tertib</td><td>Praktik lancar, 1-2 bacaan kurang tepat</td><td>Praktik dengan bantuan guru</td><td>Belum mampu praktik</td></tr>
+        </table>
+        </div>
+    </div>
+
+    <!-- 18 LKPD -->
+    <div class="card green">
+        <div class="section-title"><span>✍️</span> 18. LKPD - "Aku Cinta Rawatib"</div>
+        <p><b>Nama:</b> ___________ <b>Kelas:</b> 3 ___</p>
+        <div class="soal">
+            <b>A. Ayo Mengamati!</b> Lihat video/gambar. Apa yang dilakukan anak itu sebelum shalat Dzuhur? <br><i>Jawab: _____________________________</i>
+        </div>
+        <div class="soal">
+            <b>B. Ayo Menulis! Isi tabel rawatib pelengkap shalat wajib</b>
+            <div class="table-wrap" style="margin-top:8px">
+            <table>
+                <tr><th>Shalat Wajib</th><th>Qobliyah (Sebelum)</th><th>Ba'diyah (Sesudah)</th></tr>
+                <tr><td>Subuh</td><td>2 rakaat</td><td>-</td></tr>
+                <tr><td>Dzuhur</td><td>2 / 4 rakaat</td><td>2 rakaat</td></tr>
+                <tr><td>Ashar</td><td>2 rakaat (ghairu)</td><td>-</td></tr>
+                <tr><td>Maghrib</td><td>2 rakaat (ghairu)</td><td>2 rakaat</td></tr>
+                <tr><td>Isya</td><td>2 rakaat (ghairu)</td><td>2 rakaat</td></tr>
+            </table>
+            </div>
+        <div class="soal">
+            <b>C. Ayo Praktik! Centang (✓)</b><br>
+            ☐ Saya sudah wudhu dengan benar &nbsp; ☐ Saya shalat 2 rakaat dengan khusyuk &nbsp; ☐ Saya berdoa setelahnya
+        </div>
+    </div>
+
+    <div class="grid-2">
+        <div class="card blue">
+            <div class="section-title"><span>🚀</span> 19. Pengayaan & Remedial</div>
+            <p><b>Pengayaan:</b> Menghafal hadits rawatib, membuat poster "Hikmah Rawatibku".</p>
+            <p><b>Remedial:</b> Bimbingan individu mengulang gerakan dan niat qobliyah/ba'diyah dengan kartu bergambar.</p>
+        </div>
+        <div class="card yellow">
+            <div class="section-title"><span>🪞</span> 20. Refleksi</div>
+            <table>
+                <tr><th>Guru</th><th>Peserta Didik</th></tr>
+                <tr><td>Apakah game "Pasangkan Waktu" berhasil? Metode apa yang perlu diperbaiki?</td><td>Apa perasaanmu setelah belajar rawatib? Apa yang paling sulit?</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 21 DOA -->
+    <div class="card">
+        <div class="section-title"><span>🤲</span> 21. Doa Pembuka & Penutup</div>
+        <div class="grid-2">
+            <div class="dalil">
+                <b>Doa Sebelum Belajar</b>
+                <div class="arab">رَبِّ زِدْنِي عِلْمًا وَارْزُقْنِي فَهْمًا</div>
+                <div class="latin">Robbi zidni ilman warzuqni fahman</div>
+                <p>Ya Allah, tambahkanlah aku ilmu dan berilah aku pemahaman</p>
+            </div>
+            <div class="dalil">
+                <b>Doa Sesudah Belajar</b>
+                <div class="arab">سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ</div>
+                <div class="latin">Subhanakallahumma wabihamdika</div>
+                <p>Maha Suci Engkau ya Allah, dengan memuji-Mu</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 22 DALIL -->
+    <div class="card green">
+        <div class="section-title"><span>📖</span> 22. Dalil Naqli</div>
+        <div class="dalil">
+            <b>QS. Hud: 114</b>
+            <div class="arab">وَأَقِمِ الصَّلَاةَ طَرَفَيِ النَّهَارِ وَزُلَفًا مِّنَ اللَّيْلِ</div>
+            <p><i>"Dirikanlah shalat pada kedua ujung siang dan pada bagian permulaan malam..."</i></p>
+        </div>
+        <div class="dalil">
+            <b>Hadits Rawatib</b>
+            <p><i>"Barangsiapa menjaga 12 rakaat shalat sunah dalam sehari semalam, akan dibangunkan untuknya rumah di surga."</i></p>
+            <p><b>(HR. Muslim no. 728, HR. Tirmidzi)</b></p>
+            <p>12 rakaat itu: 2 sebelum Subuh, 4 sebelum Dzuhur, 2 sesudah Dzuhur, 2 sesudah Maghrib, 2 sesudah Isya</p>
+        </div>
+    </div>
+
+    <!-- 23 SOAL -->
+    <div class="card">
+        <div class="section-title"><span>✏️</span> 23. Soal Evaluasi HOTS</div>
+        
+        <b>A. Pilihan Ganda (Pilih jawaban paling tepat!)</b>
+        <ol style="padding-left:20px;margin-top:8px">
+            <li>Shalat rawatib artinya... <br>a. Shalat wajib 5 waktu b. <u>Shalat sunah yang mengiringi shalat wajib</u> c. Shalat hari raya d. Shalat jenazah</li>
+            <li>Shalat rawatib yang sangat dianjurkan Nabi disebut... a. <u>Muakkad</u> b. Ghairu muakkad c. Wajib d. Jama'</li>
+            <li>Jumlah rakaat qobliyah Subuh adalah... a. 4 b. <u>2</u> c. 3 d. 1</li>
+            <li>Shalat sunah sesudah Isya disebut... a. Qobliyah Isya b. <u>Ba'diyah Isya</u> c. Tahajud d. Dhuha</li>
+            <li>Yang termasuk rawatib muakkad adalah... a. Sebelum Ashar b. <u>Sesudah Maghrib</u> c. Sebelum Maghrib d. Sebelum Isya</li>
+            <li>Hikmah shalat rawatib adalah... a. <u>Menambah pahala</u> b. Membuat malas c. Mengurangi waktu main d. Tidak ada manfaat</li>
+            <li>Shalat rawatib dikerjakan... a. Setahun sekali b. <u>Sebelum/sesudah shalat wajib</u> c. Hanya Ramadan d. Saat sakit</li>
+            <li>Rasulullah rajin rawatib agar kita... a. <u>Mencontoh beliau</u> b. Lupa wajib c. Cepat pulang d. Tidur terus</li>
+            <li>Yang bukan rawatib muakkad... a. 2 sebelum Subuh b. 2 sesudah Dzuhur c. <u>2 sebelum Ashar</u> d. 2 sesudah Isya</li>
+            <li>Jika menjaga 12 rakaat rawatib, Allah janjikan... a. <u>Rumah di surga</u> b. Mainan baru c. Nilai 100 d. Libur sekolah</li>
+        </ol>
+
+        <b style="display:block;margin-top:16px">B. Isian Singkat</b>
+        <ol style="padding-left:20px">
+            <li>Qobliyah artinya dikerjakan <u>sebelum</u> shalat wajib.</li>
+            <li>Ba'diyah artinya dikerjakan <u>sesudah</u> shalat wajib.</li>
+            <li>Jumlah rawatib muakkad yang dijanjikan rumah di surga adalah <u>12</u> rakaat.</li>
+            <li>Hikmah rawatib membuat hati menjadi <u>tenang</u>.</li>
+            <li>Shalat 2 rakaat sebelum Subuh lebih baik dari dunia dan <u>seisinya</u>.</li>
+        </ol>
+
+        <b style="display:block;margin-top:16px">C. Uraian</b>
+        <ol style="padding-left:20px">
+            <li>Jelaskan pengertian shalat rawatib dengan bahasamu sendiri!</li>
+            <li>Sebutkan 3 contoh shalat rawatib muakkad!</li>
+            <li>Mengapa Rasulullah sangat menjaga shalat rawatib?</li>
+            <li>Jelaskan hikmah shalat rawatib bagi disiplin harianmu!</li>
+            <li>Apa yang kamu rasakan setelah melakukan shalat rawatib? Ceritakan!</li>
+        </ol>
+
+        <div id="kunci" class="kunci">
+            <h3>🔑 KUNCI JAWABAN URAIAN</h3>
+            <p><b>1.</b> Shalat rawatib adalah shalat sunah yang dikerjakan sebelum (qobliyah) atau sesudah (ba'diyah) shalat wajib lima waktu sebagai pelengkap dan penambah pahala.</p>
+            <p><b>2.</b> 2 rakaat sebelum Subuh, 2 rakaat sebelum Dzuhur, 2 rakaat sesudah Dzuhur, 2 rakaat sesudah Maghrib, 2 rakaat sesudah Isya (pilih 3).</p>
+            <p><b>3.</b> Karena rawatib sangat dicintai Allah, menyempurnakan shalat wajib, dan menjadi teladan agar umat mendapat rumah di surga.</p>
+            <p><b>4.</b> Melatih disiplin waktu, tidak menunda shalat, membiasakan datang awal ke masjid, hati lebih tenang dan teratur.</p>
+            <p><b>5.</b> (Jawaban terbuka - diterima jika menunjukkan perasaan tenang, senang, dekat dengan Allah, lebih semangat belajar).</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><b>Disusun oleh Jajuli, S.Pd. - SDS Lagoa YPUL 2025</b></p>
+        <p>Modul Ajar PAI dan Budi Pekerti Kurikulum Merdeka | Dicetak dari Sistem Modul Digital</p>
+    </div>
+</div>
+
+<script>
+function toggleKunci(){
+    const k = document.getElementById('kunci');
+    if(k.style.display === 'block'){
+        k.style.display = 'none';
+    } else {
+        k.style.display = 'block';
+        k.scrollIntoView({behavior:'smooth'});
+    }
+}
+</script>
+</body>
+</html>
